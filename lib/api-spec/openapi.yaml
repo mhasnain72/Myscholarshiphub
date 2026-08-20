@@ -1,22 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MyScholarship opportunity discovery and publishing API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: opportunities
+  - name: admin
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +24,352 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in to the admin area
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Sign out
+      responses:
+        "204":
+          description: Signed out
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current admin session
+      responses:
+        "200":
+          description: Current admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not signed in
+  /opportunities:
+    get:
+      operationId: listOpportunities
+      tags: [opportunities]
+      summary: List published scholarships and internships
+      parameters:
+        - $ref: "#/components/parameters/OpportunityType"
+        - $ref: "#/components/parameters/Country"
+        - $ref: "#/components/parameters/PostedWithinHours"
+        - $ref: "#/components/parameters/DeadlineWithinDays"
+        - $ref: "#/components/parameters/Search"
+      responses:
+        "200":
+          description: Opportunity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Opportunity"
+    post:
+      operationId: createOpportunity
+      tags: [admin, opportunities]
+      summary: Create a scholarship or internship
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpportunityInput"
+      responses:
+        "201":
+          description: Created opportunity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Opportunity"
+        "401":
+          description: Admin login required
+  /opportunities/{id}:
+    get:
+      operationId: getOpportunity
+      tags: [opportunities]
+      summary: Get one published opportunity
+      parameters:
+        - $ref: "#/components/parameters/OpportunityId"
+      responses:
+        "200":
+          description: Opportunity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Opportunity"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateOpportunity
+      tags: [admin, opportunities]
+      summary: Update an opportunity
+      parameters:
+        - $ref: "#/components/parameters/OpportunityId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpportunityUpdate"
+      responses:
+        "200":
+          description: Updated opportunity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Opportunity"
+        "401":
+          description: Admin login required
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteOpportunity
+      tags: [admin, opportunities]
+      summary: Delete an opportunity
+      parameters:
+        - $ref: "#/components/parameters/OpportunityId"
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Admin login required
+  /admin/opportunities:
+    get:
+      operationId: listAdminOpportunities
+      tags: [admin]
+      summary: List all opportunities including drafts
+      responses:
+        "200":
+          description: Admin opportunity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Opportunity"
+        "401":
+          description: Admin login required
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Get publishing dashboard summary
+      responses:
+        "200":
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "401":
+          description: Admin login required
 components:
+  parameters:
+    OpportunityId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: number
+        minimum: 1
+    OpportunityType:
+      name: type
+      in: query
+      schema:
+        $ref: "#/components/schemas/OpportunityType"
+    Country:
+      name: country
+      in: query
+      schema:
+        type: string
+    PostedWithinHours:
+      name: postedWithinHours
+      in: query
+      schema:
+        type: number
+        minimum: 1
+    DeadlineWithinDays:
+      name: deadlineWithinDays
+      in: query
+      schema:
+        type: number
+        minimum: 1
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+    AuthUser:
+      type: object
+      required: [username, role]
+      properties:
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin]
+    OpportunityType:
+      type: string
+      enum: [scholarship, internship]
+    OpportunityStatus:
+      type: string
+      enum: [draft, published]
+    Opportunity:
+      type: object
       required:
+        - id
+        - title
+        - slug
+        - type
         - status
-
+        - imageUrl
+        - description
+        - deadline
+        - eligibleCountries
+        - eligibilityCriteria
+        - financialBenefits
+        - requiredDocuments
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        slug:
+          type: string
+        headline:
+          type: ["string", "null"]
+        type:
+          $ref: "#/components/schemas/OpportunityType"
+        status:
+          $ref: "#/components/schemas/OpportunityStatus"
+        imageUrl:
+          type: string
+        description:
+          type: string
+        deadline:
+          type: string
+          format: date
+        eligibleCountries:
+          type: array
+          items:
+            type: string
+        eligibilityCriteria:
+          type: string
+        financialBenefits:
+          type: string
+        requiredDocuments:
+          type: string
+        applicationUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OpportunityInput:
+      type: object
+      required:
+        - title
+        - type
+        - imageUrl
+        - description
+        - deadline
+        - eligibleCountries
+        - eligibilityCriteria
+        - financialBenefits
+        - requiredDocuments
+      properties:
+        title:
+          type: string
+          minLength: 2
+        headline:
+          type: string
+        type:
+          $ref: "#/components/schemas/OpportunityType"
+        status:
+          $ref: "#/components/schemas/OpportunityStatus"
+          default: published
+        imageUrl:
+          type: string
+        description:
+          type: string
+          minLength: 10
+        deadline:
+          type: string
+          format: date
+        eligibleCountries:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        eligibilityCriteria:
+          type: string
+        financialBenefits:
+          type: string
+        requiredDocuments:
+          type: string
+        applicationUrl:
+          type: ["string", "null"]
+    OpportunityUpdate:
+      allOf:
+        - $ref: "#/components/schemas/OpportunityInput"
+    DashboardSummary:
+      type: object
+      required: [total, published, drafts, scholarships, internships, recent]
+      properties:
+        total:
+          type: number
+        published:
+          type: number
+        drafts:
+          type: number
+        scholarships:
+          type: number
+        internships:
+          type: number
+        recent:
+          type: array
+          items:
+            $ref: "#/components/schemas/Opportunity"

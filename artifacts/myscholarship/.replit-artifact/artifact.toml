@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "MyScholarship"
+description = "A scholarship and internship discovery platform with country and deadline filters, detailed opportunity pages, and a private admin dashboard for publishing opportunities."
+version = "1.0.0"
+id = "artifacts/myscholarship"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19156
+
+[services.development]
+run = "pnpm --filter @workspace/myscholarship run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/myscholarship", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/myscholarship/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19156"
+BASE_PATH = "/"

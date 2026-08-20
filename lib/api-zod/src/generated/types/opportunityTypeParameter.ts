@@ -5,7 +5,6 @@
  * MyScholarship opportunity discovery and publishing API
  * OpenAPI spec version: 0.1.0
  */
+import type { OpportunityType } from './opportunityType';
 
-export interface HealthStatus {
-  status: string;
-}
+export type OpportunityTypeParameter = OpportunityType;

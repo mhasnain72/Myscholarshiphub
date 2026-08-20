@@ -5,7 +5,9 @@
  * MyScholarship opportunity discovery and publishing API
  * OpenAPI spec version: 0.1.0
  */
+import type { AuthUserRole } from './authUserRole';
 
-export interface HealthStatus {
-  status: string;
+export interface AuthUser {
+  username: string;
+  role: AuthUserRole;
 }
