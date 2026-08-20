@@ -1,20 +1,22 @@
-// Export your models here. Add one export per file
-// export * from "./posts";
-//
-// Each model/table should ideally be split into different files.
-// Each model/table should define a Drizzle table, insert schema, and types:
-//
-//   import { pgTable, text, serial } from "drizzle-orm/pg-core";
-//   import { createInsertSchema } from "drizzle-zod";
-//   import { z } from "zod/v4";
-//
-//   export const postsTable = pgTable("posts", {
-//     id: serial("id").primaryKey(),
-//     title: text("title").notNull(),
-//   });
-//
-//   export const insertPostSchema = createInsertSchema(postsTable).omit({ id: true });
-//   export type InsertPost = z.infer<typeof insertPostSchema>;
-//   export type Post = typeof postsTable.$inferSelect;
+import { integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
-export {}
+export const opportunitiesTable = pgTable("opportunities", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  headline: text("headline"),
+  type: text("type").notNull(),
+  status: text("status").notNull().default("published"),
+  imageUrl: text("image_url").notNull(),
+  description: text("description").notNull(),
+  deadline: timestamp("deadline", { withTimezone: false }).notNull(),
+  eligibleCountries: jsonb("eligible_countries").$type<string[]>().notNull(),
+  eligibilityCriteria: text("eligibility_criteria").notNull(),
+  financialBenefits: text("financial_benefits").notNull(),
+  requiredDocuments: text("required_documents").notNull(),
+  applicationUrl: text("application_url"),
+  createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: false }).notNull().defaultNow(),
+});
+
+export type Opportunity = typeof opportunitiesTable.$inferSelect;

@@ -59,13 +59,13 @@ export const GetCurrentUserResponse = zod.object({
 export const ListOpportunitiesQueryParams = zod.object({
   "type": zod.enum(['scholarship', 'internship']).optional(),
   "country": zod.coerce.string().optional(),
-  "postedWithinHours": zod.coerce.number().int().min(1).optional(),
-  "deadlineWithinDays": zod.coerce.number().int().min(1).optional(),
+  "postedWithinHours": zod.coerce.number().min(1).optional(),
+  "deadlineWithinDays": zod.coerce.number().min(1).optional(),
   "search": zod.coerce.string().optional()
 })
 
 export const ListOpportunitiesResponseItem = zod.object({
-  "id": zod.int(),
+  "id": zod.number(),
   "title": zod.string(),
   "slug": zod.string(),
   "headline": zod.string().nullish(),
@@ -112,7 +112,7 @@ export const CreateOpportunityBody = zod.object({
 })
 
 export const CreateOpportunityResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number(),
   "title": zod.string(),
   "slug": zod.string(),
   "headline": zod.string().nullish(),
@@ -138,11 +138,11 @@ export const CreateOpportunityResponse = zod.object({
 
 
 export const GetOpportunityParams = zod.object({
-  "id": zod.coerce.number().int().min(1)
+  "id": zod.coerce.number().min(1)
 })
 
 export const GetOpportunityResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number(),
   "title": zod.string(),
   "slug": zod.string(),
   "headline": zod.string().nullish(),
@@ -168,7 +168,7 @@ export const GetOpportunityResponse = zod.object({
 
 
 export const UpdateOpportunityParams = zod.object({
-  "id": zod.coerce.number().int().min(1)
+  "id": zod.coerce.number().min(1)
 })
 
 export const updateOpportunityBodyOneTitleMin = 2;
@@ -195,7 +195,7 @@ export const UpdateOpportunityBody = zod.object({
 })
 
 export const UpdateOpportunityResponse = zod.object({
-  "id": zod.int(),
+  "id": zod.number(),
   "title": zod.string(),
   "slug": zod.string(),
   "headline": zod.string().nullish(),
@@ -221,7 +221,7 @@ export const UpdateOpportunityResponse = zod.object({
 
 
 export const DeleteOpportunityParams = zod.object({
-  "id": zod.coerce.number().int().min(1)
+  "id": zod.coerce.number().min(1)
 })
 
 export const DeleteOpportunityResponse = zod.void()
@@ -231,7 +231,7 @@ export const DeleteOpportunityResponse = zod.void()
  * @summary List all opportunities including drafts
  */
 export const ListAdminOpportunitiesResponseItem = zod.object({
-  "id": zod.int(),
+  "id": zod.number(),
   "title": zod.string(),
   "slug": zod.string(),
   "headline": zod.string().nullish(),
@@ -255,13 +255,13 @@ export const ListAdminOpportunitiesResponse = zod.array(ListAdminOpportunitiesRe
  * @summary Get publishing dashboard summary
  */
 export const GetAdminDashboardResponse = zod.object({
-  "total": zod.int(),
-  "published": zod.int(),
-  "drafts": zod.int(),
-  "scholarships": zod.int(),
-  "internships": zod.int(),
+  "total": zod.number(),
+  "published": zod.number(),
+  "drafts": zod.number(),
+  "scholarships": zod.number(),
+  "internships": zod.number(),
   "recent": zod.array(zod.object({
-  "id": zod.int(),
+  "id": zod.number(),
   "title": zod.string(),
   "slug": zod.string(),
   "headline": zod.string().nullish(),
